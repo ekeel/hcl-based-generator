@@ -9,6 +9,7 @@ import hudson.model.*
 import env.common
 
 /* Global Variables */
+String GitCredentialID = '{{.GitCredentialID}}'
 {{range .ConstantStrings}}{{.}}
 {{end}}
 /* Shared Configuration */
@@ -21,6 +22,7 @@ def jobs = [
 {{range .Jobs}}	[
 		jobName: '{{.Name}}',
 		scriptPath: '{{.ScriptPath}}',
+		description: '{{.Description}}',
 
 		{{range .Variables}}{{.Name}}: '{{.Value}}',
 		{{end}}
@@ -39,4 +41,44 @@ def jobs = [
 
 jobs.each { jobConfig ->
 	config = sharedConfig + jobConfig
+
+	pipelineJob(config.jobName) {
+		description = config.Description
+
+		definition {
+			cpsScm {
+				scm {
+					git {
+						remote {
+							name('origin')
+							url(config.gitRepo)
+							branch(config.gitBranch)
+							credentials(GitCredentialID)
+						}
+						extensions {
+							wipeOutWorkspace()
+						}
+					}
+				}
+				scriptPath(config.deployScript)
+			}
+		}
+	}
+
+	properties {
+		buildDiscarderProperty {
+			strategy {
+				logRotator {
+					numToKeepStr(componentconfig.numToKeep ?: 20)
+					daysToKeepStr('')
+					artifactDaysToKeepStr('')
+					artifactNumToKeepStr('')
+				}
+			}
+		}
+	}
+
+	environmentVariables {
+		{{/* TODO: add environment variables to config */}}
+	}
 }

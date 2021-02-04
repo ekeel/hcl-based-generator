@@ -6,7 +6,9 @@ import (
 )
 
 type Seed struct {
-	Name         string             `hcl:",label"`
+	Name            string `hcl:",label"`
+	GitCredentialID string `hcl:"git_cred_id,attr"`
+
 	Constants    []*SeedConstant    `hcl:"constant,block"`
 	SharedConfig *SeedSharedConfig  `hcl:"shared_config,block"`
 	Jobs         []*SeedJob         `hcl:"job,block"`
